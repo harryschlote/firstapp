@@ -1,8 +1,7 @@
+// Load environment variables from .env file in non-production environments
 if(process.env.NODE_ENV !== "production") {
     require('dotenv').config();
 }
-
-console.log(process.env.secret)
 
 //setup
 const express = require('express');
@@ -28,11 +27,8 @@ const reviewsRoutes = require('./routes/reviews');
 const MongoStore = require('connect-mongo');
 
 //connecting to the database:
-    //Development DB
-    const dbUrl ='mongodb://localhost:27017/yelp-camp';
-    //Deployment DB
-    //const dbUrl = process.env.DB_URL
-    mongoose.connect(dbUrl);
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp';
+mongoose.connect(dbUrl);
 
 
 //check if its connected
@@ -64,12 +60,13 @@ app.use(
     }),
   );
 
+const secret = process.env.SECRET || 'devbackupsecret';
 
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     touchAfter: 24*60*60,
     crypto: {
-        secret: SECRET
+        secret
     }
 })
 
@@ -81,7 +78,7 @@ store.on('error', function(e) {
 const sessionConfig = {
     store,
     name: 'session',
-    secret: SECRET,
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
